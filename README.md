@@ -1,2 +1,3 @@
-# ColorDetection
-Detect Specified Color, (learning purposes)
+# Color Detection
+
+Identify colors of the camera
