@@ -8,8 +8,8 @@ def get_limits(color):
     hsvC = cv2.cvtColor(c, cv2.COLOR_BGR2HSV)
     h = int(hsvC[0, 0, 0])
 
-    # Clip hue to [0,179] and build uint8 arrays for cv2.inRange
-    lowerLimit = np.array([max(h - 10, 0), 100, 100], dtype=np.uint8)
-    upperLimit = np.array([min(h + 10, 179), 255, 255], dtype=np.uint8)
+    # Balanced ranges - not too strict, not too loose
+    lowerLimit = np.array([max(h - 15, 0), 70, 70], dtype=np.uint8)
+    upperLimit = np.array([min(h + 15, 179), 255, 255], dtype=np.uint8)
 
     return lowerLimit, upperLimit
