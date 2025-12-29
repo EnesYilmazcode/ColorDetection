@@ -1,45 +1,50 @@
 import cv2
 from PIL import Image
+
 from utils import get_limits
 
-targetColor = [0, 0, 0]  # BGR format
-currentFrame = None
 
-# Mouse callback function
+selected_color = [0, 255, 255]  # Default to yellow in BGR colorspace
+
 def mouse_callback(event, x, y, flags, param):
-    global targetColor, currentFrame
-    if event == cv2.EVENT_LBUTTONDOWN and currentFrame is not None:
-        targetColor = currentFrame[y, x].tolist()
-        print(f"New target color selected: BGR{targetColor}")
+    global selected_color
+    if event == cv2.EVENT_LBUTTONDOWN:
+        # Get the frame from param
+        frame = param
+        # Get the BGR color at the clicked position
+        selected_color = frame[y, x].tolist()
+        print(f"Selected color (BGR): {selected_color}")
 
 cap = cv2.VideoCapture(0)
-
 cv2.namedWindow('frame')
-cv2.setMouseCallback('frame', mouse_callback)
 
 while True:
-
     ret, frame = cap.read()
-    if not ret:
-        continue
     
-    currentFrame = frame.copy()
-
+    if not ret:
+        break
+    
+    cv2.setMouseCallback('frame', mouse_callback, frame)
+    
     hsvImage = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    lower_limit, upper_limit = get_limits(targetColor)
+    lowerLimit, upperLimit = get_limits(color=selected_color)
 
-    mask = cv2.inRange(hsvImage, lower_limit, upper_limit)
+    mask = cv2.inRange(hsvImage, lowerLimit, upperLimit)
 
     mask_ = Image.fromarray(mask)
+
     bbox = mask_.getbbox()
 
-    if bbox:
+    if bbox is not None:
         x1, y1, x2, y2 = bbox
-        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-
-
+        frame = cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 5)
+    
+    # Display the current selected color in the corner
+    color_text = f"Color (BGR): {selected_color}"
+    cv2.putText(frame, color_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+    cv2.putText(frame, "Click to select color, 'q' to quit", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
     cv2.imshow('frame', frame)
 
@@ -47,4 +52,5 @@ while True:
         break
 
 cap.release()
+
 cv2.destroyAllWindows()
